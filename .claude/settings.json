@@ -7,6 +7,23 @@
       "mcp__Google_Calendar",
       "mcp__Slack",
       "mcp__Claude_Docs"
+    ],
+    "ask": [
+      "mcp__Gmail__send_message",
+      "mcp__Gmail__reply",
+      "mcp__Gmail__forward",
+      "mcp__Gmail__trash_message",
+      "mcp__Gmail__trash_thread",
+      "mcp__Gmail__delete_draft",
+      "mcp__Gmail__delete_label",
+      "mcp__Slack__slack_send_message",
+      "mcp__Slack__slack_schedule_message",
+      "mcp__Google_Drive__trash_file",
+      "mcp__Google_Calendar__delete_event",
+      "mcp__Notion__notion-delete-pages",
+      "mcp__Notion__notion-delete-databases",
+      "mcp__Notion__notion-delete-comment",
+      "mcp__Claude_Docs__delete"
     ]
   }
 }
