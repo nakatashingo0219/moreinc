@@ -1,12 +1,13 @@
 :root {
-  --bg: #f6f5f1;
+  --bg: #f7f4ef;
   --surface: #ffffff;
   --ink: #1f2a24;
   --muted: #5f6b64;
   --line: #dcdcd3;
-  --accent: #2f6b4f;
+  --brand: #5c3001;          /* ロゴの茶色 */
+  --accent: #5c3001;
   --accent-ink: #ffffff;
-  --accent-soft: #e3efe8;
+  --accent-soft: #f3ebe2;
   --in: #2f6b4f;
   --out: #a3402c;
   --out-soft: #f8e6e1;
@@ -35,27 +36,30 @@ h2 { font-size: 1.2rem; margin: 1.4em 0 0.6em; }
 .num { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
 
 /* ---------- header ---------- */
-.topbar {
-  background: var(--accent);
-  color: var(--accent-ink);
-  position: sticky; top: 0; z-index: 10;
-}
-.topbar-inner {
-  max-width: 1100px; margin: 0 auto; padding: 0 16px;
-  display: flex; align-items: center; gap: 4px; overflow-x: auto;
-}
-.brand { font-weight: 700; color: inherit; text-decoration: none; padding: 12px 12px 12px 0; white-space: nowrap; }
-.topbar nav { display: flex; gap: 2px; }
-.topbar nav a, .topbar nav button {
-  color: inherit; text-decoration: none; padding: 14px 12px; white-space: nowrap;
-  background: none; border: 0; font: inherit; cursor: pointer; border-radius: 8px;
-}
-.topbar nav a.active, .topbar nav a:hover { background: rgba(255,255,255,0.18); }
+.topbar { background: #fffdf9; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 10; }
+.topbar-brand, .topnav { max-width: 1100px; margin: 0 auto; padding: 0 16px; display: flex; align-items: center; gap: 8px; }
+.topbar-brand { padding-top: 8px; padding-bottom: 4px; }
+.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--brand); min-width: 0; }
+.brand-logo { height: 40px; width: auto; flex: none; }
+.brand-text { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+.brand-app { font-weight: 700; font-size: 1.1rem; white-space: nowrap; }
+.brand-company { font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
+.who { color: var(--muted); font-size: 0.9rem; white-space: nowrap; }
+.logout { background: none; border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; font: inherit; font-size: 0.9rem; color: var(--ink); cursor: pointer; white-space: nowrap; }
+.topnav { overflow-x: auto; gap: 2px; }
+.topnav a { flex: none; color: var(--ink); text-decoration: none; padding: 10px 12px; white-space: nowrap; border-bottom: 3px solid transparent; }
+.topnav a:hover { color: var(--brand); }
+.topnav a.active { color: var(--brand); font-weight: 700; border-bottom-color: var(--brand); }
 .badge {
   display: inline-block; min-width: 1.5em; padding: 0 6px; border-radius: 999px;
-  background: #fff; color: var(--accent); font-size: 0.8rem; font-weight: 700; text-align: center;
+  background: var(--out); color: #fff; font-size: 0.8rem; font-weight: 700; text-align: center;
 }
 .spacer { flex: 1; }
+.footer { text-align: center; color: var(--muted); font-size: 0.8rem; padding: 24px 16px 32px; }
+.login-brand { text-align: center; margin-bottom: 16px; }
+.login-brand img { width: 180px; height: auto; }
+.login-brand h1 { color: var(--brand); margin: 8px 0 0; }
+.login-brand p { margin: 0; }
 
 main { max-width: 1100px; margin: 0 auto; padding: 16px 16px 64px; }
 
@@ -220,6 +224,8 @@ tr.others { display: none; }
 
 @media (max-width: 600px) {
   body { font-size: 16px; }
+  .brand-logo { height: 32px; }
+  .brand-app { font-size: 1rem; }
   .hide-sm { display: none; }
   th, td { padding: 10px 8px; }
 }
@@ -227,5 +233,4 @@ tr.others { display: none; }
 .drop input[type=file] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 .save-bar { display: flex; gap: 12px; flex-wrap: wrap; }
 .save-bar .btn { width: auto; flex: 1 1 200px; max-width: 420px; }
-.topbar nav a, .topbar nav button { flex: none; }
 td.muted { white-space: nowrap; }

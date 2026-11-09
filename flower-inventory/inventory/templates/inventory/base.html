@@ -3,16 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% block title %}在庫管理{% endblock %}</title>
+<title>{% block title %}{{ APP_NAME }}｜{{ COMPANY_NAME }}{% endblock %}</title>
+<link rel="icon" href="{% static 'inventory/favicon.png' %}">
 <link rel="stylesheet" href="{% static 'inventory/style.css' %}">
 <script src="{% static 'inventory/app.js' %}" defer></script>
 </head>
 <body>
 {% if user.is_authenticated %}
 {% with u=request.resolver_match.url_name %}
-<header class="topbar"><div class="topbar-inner">
-  <a class="brand" href="{% url 'home' %}">🌿 在庫管理</a>
-  <nav>
+<header class="topbar">
+  <div class="topbar-brand">
+    <a class="brand" href="{% url 'home' %}">
+      <img src="{% static 'inventory/logo.png' %}" alt="{{ COMPANY_NAME }}" class="brand-logo">
+      <span class="brand-text"><span class="brand-app">{{ APP_NAME }}</span><span class="brand-company">{{ COMPANY_NAME }}</span></span>
+    </a>
+    <span class="spacer"></span>
+    <span class="who hide-sm">{{ user.username }}{% if user.is_staff %}（店長）{% endif %}</span>
+    <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="logout">ログアウト</button></form>
+  </div>
+  <nav class="topnav">
     <a href="{% url 'home' %}" class="{% if u == 'home' %}active{% endif %}">ホーム</a>
     <a href="{% url 'stock_list' %}" class="{% if u == 'stock_list' or u == 'product_detail' %}active{% endif %}">在庫</a>
     <a href="{% url 'history' %}" class="{% if u == 'history' %}active{% endif %}">記録</a>
@@ -23,9 +32,7 @@
     <a href="{% url 'admin:index' %}">設定</a>
     {% endif %}
   </nav>
-  <span class="spacer"></span>
-  <form method="post" action="{% url 'logout' %}">{% csrf_token %}<nav><button type="submit">ログアウト</button></nav></form>
-</div></header>
+</header>
 {% endwith %}
 {% endif %}
 <main>
@@ -43,5 +50,6 @@
 {% endif %}
 {% block content %}{% endblock %}
 </main>
+<footer class="footer">{{ APP_NAME }}　© {{ COMPANY_NAME }}</footer>
 </body>
 </html>

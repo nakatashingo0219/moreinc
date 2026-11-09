@@ -2,9 +2,12 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
-admin.site.site_header = "在庫管理 設定"
-admin.site.site_title = "在庫管理 設定"
+from django.conf import settings
+
+admin.site.site_header = f"{settings.APP_NAME}｜設定"
+admin.site.site_title = f"{settings.APP_NAME}｜{settings.COMPANY_NAME}"
 admin.site.index_title = "設定"
+admin.site.site_url = "/"
 
 urlpatterns = [
     path("admin/", admin.site.urls),

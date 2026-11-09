@@ -1,5 +1,5 @@
 {% extends "inventory/base.html" %}
-{% block title %}{{ st.title }}｜在庫管理{% endblock %}
+{% block title %}{{ st.title }}｜{{ APP_NAME }}｜{{ COMPANY_NAME }}{% endblock %}
 {% block content %}
 <p><a href="{% url 'stocktake_list' %}">← 棚卸し一覧</a></p>
 <h1>{{ st.title }}</h1>

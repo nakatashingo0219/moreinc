@@ -1,5 +1,5 @@
 {% extends "inventory/base.html" %}
-{% block title %}{{ k.label }}｜在庫管理{% endblock %}
+{% block title %}{{ k.label }}｜{{ APP_NAME }}｜{{ COMPANY_NAME }}{% endblock %}
 {% block content %}
 <p><a href="{% url 'record_select' kind %}">← 商品を選び直す</a></p>
 <div class="record-head"><span class="icon" style="background:var(--{{ k.tone }})" aria-hidden="true">{{ k.icon }}</span>

@@ -4,4 +4,4 @@ MORE会社用
 
 ## プロジェクト
 
-- [flower-inventory](flower-inventory/)：花屋向け在庫管理システム（株式会社きむらフローリスト向け）
+- [flower-inventory](flower-inventory/)：お花在庫管理システム（株式会社きむらフローリスト向け）

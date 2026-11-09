@@ -1,8 +1,13 @@
 {% extends "inventory/base.html" %}
-{% block title %}ログイン｜在庫管理{% endblock %}
+{% load static %}
+{% block title %}ログイン｜{{ APP_NAME }}｜{{ COMPANY_NAME }}{% endblock %}
 {% block content %}
 <div class="login card">
-  <h1>🌿 在庫管理</h1>
+  <div class="login-brand">
+    <img src="{% static 'inventory/logo.png' %}" alt="{{ COMPANY_NAME }}">
+    <h1>{{ APP_NAME }}</h1>
+    <p class="muted">{{ COMPANY_NAME }}</p>
+  </div>
   {% if form.errors %}<p class="alert red">ユーザー名かパスワードが違います。</p>{% endif %}
   <form method="post">{% csrf_token %}
     <label for="id_username">ユーザー名</label>

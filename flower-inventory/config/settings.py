@@ -93,6 +93,10 @@ STORAGES = {
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# 画面に表示する名前
+APP_NAME = os.environ.get("APP_NAME", "お花在庫管理システム")
+COMPANY_NAME = os.environ.get("COMPANY_NAME", "株式会社きむらフローリスト")
+
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "home"
 LOGOUT_REDIRECT_URL = "login"
