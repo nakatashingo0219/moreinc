@@ -1,0 +1,28 @@
+{% extends "inventory/base.html" %}
+{% load inv %}
+{% block title %}{{ st.title }}の確認｜在庫管理{% endblock %}
+{% block content %}
+<p><a href="{% url 'stocktake_list' %}">← 棚卸し一覧</a>{% if st.status == "draft" %}　<a href="{% url 'stocktake_edit' st.pk %}">← 入力に戻る</a>{% endif %}</p>
+<h1>{{ st.title }}：{% if st.status == "draft" %}差の確認{% else %}結果{% endif %}</h1>
+<p class="muted">数えた商品 {{ lines|length }}件。差があるものを上に表示しています。</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>場所</th><th>商品</th><th class="num">システム上の数</th><th class="num">実際の数</th><th class="num">差</th></tr></thead>
+  <tbody>
+  {% for l in lines %}
+  <tr>
+    <td>{{ l.location.name }}</td><td>{{ l.product.name }}</td>
+    <td class="num">{{ l.system }}</td><td class="num"><strong>{{ l.counted }}</strong></td>
+    <td class="num {% if l.diff < 0 %}neg{% endif %}">{% if l.diff %}{{ l.diff|signed }}{% else %}<span class="muted">0</span>{% endif %}</td>
+  </tr>
+  {% empty %}<tr><td colspan="5" class="muted">まだ数が入力されていません。</td></tr>{% endfor %}
+  </tbody>
+</table></div>
+<div class="btn-row">
+  {% if st.status == "draft" and user.is_staff and lines %}
+  <form method="post" action="{% url 'stocktake_confirm' st.pk %}" data-confirm="棚卸しを確定します。数えた数で在庫を上書きします。よろしいですか？（確定後は変更できません）">{% csrf_token %}<button class="btn">確定する</button></form>
+  {% elif st.status == "draft" and not user.is_staff %}
+  <p class="muted">確定は店長（管理者）が行います。</p>
+  {% endif %}
+  <a class="btn secondary" href="{% url 'stocktake_csv' st.pk %}">CSVでダウンロード</a>
+</div>
+{% endblock %}

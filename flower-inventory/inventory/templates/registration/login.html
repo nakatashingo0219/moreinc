@@ -1,0 +1,16 @@
+{% extends "inventory/base.html" %}
+{% block title %}ログイン｜在庫管理{% endblock %}
+{% block content %}
+<div class="login card">
+  <h1>🌿 在庫管理</h1>
+  {% if form.errors %}<p class="alert red">ユーザー名かパスワードが違います。</p>{% endif %}
+  <form method="post">{% csrf_token %}
+    <label for="id_username">ユーザー名</label>
+    <input type="text" name="username" id="id_username" autocomplete="username" autocapitalize="off" required autofocus>
+    <label for="id_password">パスワード</label>
+    <input type="password" name="password" id="id_password" autocomplete="current-password" required>
+    <input type="hidden" name="next" value="{{ next }}">
+    <button class="btn" type="submit">ログイン</button>
+  </form>
+</div>
+{% endblock %}

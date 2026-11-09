@@ -1,0 +1,35 @@
+{% extends "inventory/base.html" %}
+{% block title %}商品｜在庫管理{% endblock %}
+{% block content %}
+<h1>商品</h1>
+<p class="muted">商品を増やす方法は3つあります。<br>
+① <a href="{% url 'airregi_sync' %}">Airレジ同期</a>でファイルを取り込み、「まだ登録していない商品」から選ぶ（おすすめ）<br>
+② 下のCSVで一括登録・一括更新する<br>
+③ <a href="{% url 'admin:inventory_product_add' %}">1件ずつ登録する</a></p>
+
+<div class="card">
+  <h2 style="margin-top:0">CSVで一括登録・更新</h2>
+  <p class="muted">項目：{{ header|join:"、" }}。商品コードが同じ行は上書きされます。<br>
+  ひな形（今の商品一覧）をダウンロードし、Excelなどで編集して取り込んでください。</p>
+  <div class="btn-row">
+    <a class="btn secondary" href="{% url 'product_csv_template' %}">ひな形をダウンロード</a>
+  </div>
+  <form method="post" action="{% url 'product_csv_import' %}" enctype="multipart/form-data">{% csrf_token %}
+    <label class="drop"><input type="file" name="file" accept=".csv,text/csv" required><strong data-filename>CSVファイルをドラッグ＆ドロップ、またはタップして選ぶ</strong></label>
+    <button class="btn">取り込む</button>
+  </form>
+</div>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>コード</th><th>商品名</th><th class="hide-sm">カテゴリ</th><th class="num">在庫</th><th class="hide-sm">Airレジ</th><th class="hide-sm">状態</th><th></th></tr></thead>
+  <tbody>{% for p in products %}
+  <tr>
+    <td class="muted">{{ p.code }}</td><td><a class="rowlink" href="{% url 'product_detail' p.pk %}">{{ p.name }}</a></td>
+    <td class="hide-sm">{{ p.category }}</td><td class="num">{{ p.total|default:0 }} {{ p.unit }}</td>
+    <td class="hide-sm">{% if p.is_linked %}<span class="tag green">連携済み</span>{% else %}<span class="tag warn">未連携</span>{% endif %}</td>
+    <td class="hide-sm">{% if p.is_active %}管理中{% else %}<span class="tag">停止</span>{% endif %}</td>
+    <td><a class="btn small secondary" href="{% url 'admin:inventory_product_change' p.pk %}">編集</a></td>
+  </tr>
+  {% empty %}<tr><td colspan="7" class="muted">商品がまだありません。</td></tr>{% endfor %}</tbody>
+</table></div>
+{% endblock %}

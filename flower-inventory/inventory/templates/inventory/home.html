@@ -1,0 +1,60 @@
+{% extends "inventory/base.html" %}
+{% load inv %}
+{% block content %}
+{% if pending or low or shelf or negative or unsent %}
+<div class="alerts">
+  {% if pending and user.is_staff %}
+  <div class="alert red">Airレジ用のファイルを作ったまま、アップロードの確認が済んでいません。<a href="{% url 'airregi_sync' %}">Airレジ同期へ</a></div>
+  {% endif %}
+  {% if negative %}
+  <div class="alert red">在庫がマイナスの商品があります。数え直して「数の修正」をしてください。
+    <ul>{% for p in negative %}<li><a href="{% url 'product_detail' p.pk %}">{{ p.name }}</a>（{{ p.total }}{{ p.unit }}）</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+  {% if low %}
+  <div class="alert">在庫が少なくなっています（発注点以下）
+    <ul>{% for p in low %}<li><a href="{% url 'product_detail' p.pk %}">{{ p.name }}</a>：残り {{ p.total|default:0 }}{{ p.unit }}（発注点 {{ p.reorder_point }}）</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+  {% if shelf %}
+  <div class="alert">早めに売りたい商品（日持ちの目安が近い）
+    <ul>{% for a in shelf %}<li><a href="{% url 'product_detail' a.product.pk %}">{{ a.product.name }}</a>：目安 {{ a.limit|date:"n/j" }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+  {% if unsent and user.is_staff and not pending %}
+  <div class="alert green">Airレジにまだ送っていない記録が {{ unsent }}件あります。<a href="{% url 'airregi_sync' %}">Airレジ同期へ</a></div>
+  {% endif %}
+</div>
+{% endif %}
+
+<h1>何をしますか？</h1>
+<div class="big-actions">
+  {% for key, k in kinds.items %}
+  <a class="big-action tone-{{ k.tone }}" href="{% url 'record_select' key %}"><span class="icon" aria-hidden="true">{{ k.icon }}</span>{{ k.label }}</a>
+  {% endfor %}
+  <a class="big-action tone-view" href="{% url 'stock_list' %}"><span class="icon" aria-hidden="true">≡</span>在庫を見る</a>
+  <a class="big-action tone-view" href="{% url 'stocktake_list' %}"><span class="icon" aria-hidden="true">✓</span>棚卸し</a>
+</div>
+
+<h2>最近の記録</h2>
+{% if recent %}
+<div class="table-wrap"><table>
+  <thead><tr><th>日時</th><th>商品</th><th>種類</th><th class="num">増減</th><th class="hide-sm">場所</th><th class="hide-sm">記録した人</th></tr></thead>
+  <tbody>
+  {% for m in recent %}
+  <tr>
+    <td class="muted">{{ m.created_at|date:"n/j H:i" }}</td>
+    <td><a class="rowlink" href="{% url 'product_detail' m.product_id %}">{{ m.product.name }}</a></td>
+    <td>{{ m.get_kind_display }}{% if m.reason %}（{{ m.reason }}）{% endif %}{% if m.cancel_of_id %} <span class="tag">取り消し</span>{% endif %}</td>
+    <td class="num {% if m.qty < 0 %}neg{% endif %}">{{ m.qty|signed }}</td>
+    <td class="hide-sm">{{ m.location.name|default:"" }}</td>
+    <td class="hide-sm muted">{{ m.user.username|default:"自動" }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+<p><a href="{% url 'history' %}">すべての記録を見る →</a></p>
+{% else %}
+<p class="muted">まだ記録はありません。</p>
+{% endif %}
+{% endblock %}

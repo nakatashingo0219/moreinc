@@ -1,0 +1,111 @@
+{% extends "inventory/base.html" %}
+{% load inv %}
+{% block title %}Airレジ同期｜在庫管理{% endblock %}
+{% block content %}
+<h1>Airレジ同期</h1>
+<p class="muted">Airレジで売れた数をこのシステムに取り込み、このシステムで記録した入荷・廃棄・棚卸しなどをAirレジに送ります。パソコンで行ってください（目安：1日1回、閉店後）。
+{% if unsent %}<br>Airレジに未送信の記録：<strong>{{ unsent }}件</strong>{% endif %}</p>
+
+{% with st=latest.status %}
+<div class="steps">
+  <div class="step {% if not latest or st == 'uploaded' or st == 'discarded' %}current{% else %}done{% endif %}">
+    <span class="where">Airレジ バックオフィス</span>
+    <h3>編集用ファイルをダウンロードする</h3>
+    <p>「在庫管理」→「在庫数をCSVで編集する」→「編集用ファイル(CSV)をダウンロードする」</p>
+  </div>
+
+  <div class="step {% if not latest or st == 'uploaded' or st == 'discarded' %}current{% else %}done{% endif %}">
+    <span class="where">このシステム</span>
+    <h3>そのファイルを取り込む</h3>
+    <form method="post" enctype="multipart/form-data">{% csrf_token %}
+      {% if pending %}
+      <div class="alert red" style="margin:8px 0">
+        前回（{{ pending.exported_at|date:"n/j H:i" }}）作ったファイルを、Airレジにアップロードしましたか？
+        <div class="choices" style="margin-top:8px">
+          <input type="radio" name="previous_uploaded" id="pu_yes" value="yes" required><label for="pu_yes">アップロードした</label>
+          <input type="radio" name="previous_uploaded" id="pu_no" value="no"><label for="pu_no">アップロードしていない</label>
+        </div>
+      </div>
+      {% endif %}
+      <label class="drop">
+        <input type="file" name="file" accept=".csv,text/csv" required>
+        <strong data-filename>ここにファイルをドラッグ＆ドロップ、またはタップして選ぶ</strong>
+      </label>
+      <button class="btn" type="submit">取り込む</button>
+    </form>
+  </div>
+
+  <div class="step {% if st == 'imported' %}current{% elif st == 'exported' %}done{% endif %}">
+    <span class="where">このシステム</span>
+    <h3>Airレジ用のファイルを作る</h3>
+    {% if st == "imported" %}
+      {% if changed_lines %}
+      <p>次の{{ changed_lines|length }}件の増減をAirレジに送ります。</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>商品</th><th class="num">Airレジの数</th><th class="num">このシステムの数</th><th class="num">送る増減</th></tr></thead>
+        <tbody>{% for l in changed_lines %}<tr><td>{{ l.product.name }}</td><td class="num">{{ l.airregi_qty }}</td><td class="num">{{ l.current_total }}</td><td class="num {% if l.planned < 0 %}neg{% endif %}"><strong>{{ l.planned|signed }}</strong></td></tr>{% endfor %}</tbody>
+      </table></div>
+      {% else %}
+      <p>Airレジに送る増減はありません（そのままアップロードしても在庫は変わりません）。</p>
+      {% endif %}
+      <form method="post" action="{% url 'airregi_export' latest.pk %}" style="margin-top:12px">{% csrf_token %}
+        <button class="btn" type="submit" onclick="setTimeout(()=>location.reload(),1500)">ファイルを作ってダウンロード</button>
+      </form>
+      <p class="muted">ファイル名は取り込んだファイルと同じ「{{ latest.filename }}」になります。名前は変えないでください。</p>
+    {% else %}
+      <p class="muted">ファイルを取り込むと、ここでAirレジ用のファイルを作れます。</p>
+    {% endif %}
+  </div>
+
+  <div class="step {% if st == 'exported' %}current{% elif st == 'uploaded' %}done{% endif %}">
+    <span class="where">Airレジ バックオフィス</span>
+    <h3>Airレジにアップロードする</h3>
+    <p>「ファイルで一括編集」画面で、<strong>「現在の在庫数に足し引きする」</strong>を選び、作ったファイルをアップロードします。</p>
+    {% if st == "exported" %}
+    <p>アップロードが終わったら、下のボタンを押してください。</p>
+    <div class="btn-row">
+      <form method="post" action="{% url 'airregi_uploaded' latest.pk %}">{% csrf_token %}<input type="hidden" name="answer" value="yes"><button class="btn">アップロードした（完了）</button></form>
+      <form method="post" action="{% url 'airregi_export' latest.pk %}">{% csrf_token %}<button class="btn secondary">もう一度ダウンロード</button></form>
+      <form method="post" action="{% url 'airregi_uploaded' latest.pk %}" data-confirm="作ったファイルを取り消します。アップロードしていない場合だけ選んでください。">{% csrf_token %}<input type="hidden" name="answer" value="no"><button class="btn secondary">アップロードしなかった</button></form>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endwith %}
+
+{% if latest and latest.status != "discarded" %}
+<h2>前回の取り込み結果（{{ latest.imported_at|date:"n/j H:i" }}）</h2>
+{% with s=latest.summary %}
+<div class="card">
+  <p>ファイルの行数：{{ s.rows }}件</p>
+  {% if s.changes %}
+  <p><strong>Airレジ側の変動（会計による販売など）</strong></p>
+  <ul>{% for c in s.changes %}<li>{{ c.name }}：<span class="{% if c.change < 0 %}neg{% endif %}">{{ c.change|signed }}{{ c.unit }}</span>{% if c.change < 0 %}（販売）{% endif %}</li>{% endfor %}</ul>
+  {% else %}<p class="muted">Airレジ側の変動はありませんでした。</p>{% endif %}
+  {% if s.new_links %}<p class="muted">商品コードでひも付けた商品：{{ s.new_links|join:"、" }}</p>{% endif %}
+  {% if s.missing %}<p class="alert">このシステムで管理しているのに、ファイルにない商品：{{ s.missing|join:"、" }}（Airレジ側で「管理対象」がオンか確認してください）</p>{% endif %}
+</div>
+{% if s.unmatched and latest.status == "imported" %}
+<h2>まだ登録していない商品（{{ s.unmatched|length }}件）</h2>
+<p class="muted">管理を始めたい商品にチェックを入れて登録します。今の在庫数はAirレジの数から始まり、「基本の場所」（設定 → 保管場所）に入ります。</p>
+<form method="post" action="{% url 'airregi_register' latest.pk %}">{% csrf_token %}
+  <div class="table-wrap"><table>
+    <thead><tr><th></th><th>商品名</th><th class="hide-sm">カテゴリー</th><th class="hide-sm">商品コード</th><th class="num">Airレジの在庫数</th></tr></thead>
+    <tbody>{% for u in s.unmatched %}
+      <tr><td><input type="checkbox" name="key" value="{{ u.product_id }}|{{ u.variation_id }}" id="u{{ forloop.counter }}" style="width:24px;height:24px"></td>
+      <td><label for="u{{ forloop.counter }}">{{ u.name }}</label></td><td class="hide-sm">{{ u.category }}</td><td class="hide-sm">{{ u.code }}</td>
+      <td class="num {% if u.current_qty < 0 %}neg{% endif %}">{{ u.current_qty|default_if_none:"" }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  <div class="btn-row"><button class="btn secondary">チェックした商品を登録する</button></div>
+</form>
+{% endif %}
+{% endwith %}
+{% endif %}
+
+<h2>同期の履歴</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>取り込み</th><th>ファイル名</th><th>状態</th></tr></thead>
+  <tbody>{% for h in history %}<tr><td class="muted">{{ h.imported_at|date:"Y/n/j H:i" }}</td><td>{{ h.filename }}</td><td>{{ h.get_status_display }}</td></tr>{% empty %}<tr><td colspan="3" class="muted">まだ同期していません。</td></tr>{% endfor %}</tbody>
+</table></div>
+{% endblock %}

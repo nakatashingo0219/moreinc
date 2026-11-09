@@ -1,0 +1,41 @@
+{% extends "inventory/base.html" %}
+{% load inv %}
+{% block title %}{{ product.name }}｜在庫管理{% endblock %}
+{% block content %}
+<p><a href="{% url 'stock_list' %}">← 在庫一覧</a></p>
+<h1>{{ product.name }}</h1>
+<p class="muted">{{ product.code }}{% if product.category %}・{{ product.category }}{% endif %}・単位：{{ product.unit }}{% if product.reorder_point %}・発注点 {{ product.reorder_point }}{% endif %}
+{% if product.is_linked %}<span class="tag green">Airレジ連携済み</span>{% else %}<span class="tag warn">Airレジ未連携</span>{% endif %}
+{% if user.is_staff %} <a href="{% url 'admin:inventory_product_change' product.pk %}">商品情報を編集</a>{% endif %}</p>
+
+<div class="card">
+  <strong>合計 {{ product.total_qty }}{{ product.unit }}</strong>
+  <div class="table-wrap" style="margin-top:8px"><table>
+    <tbody>{% for s in stocks %}<tr><td>{{ s.location.name }}</td><td class="num {% if s.qty < 0 %}neg{% endif %}">{{ s.qty }} {{ product.unit }}</td></tr>{% empty %}<tr><td class="muted">在庫の記録はまだありません</td></tr>{% endfor %}</tbody>
+  </table></div>
+</div>
+
+<div class="btn-row">
+  {% for key, k in kinds.items %}<a class="btn secondary small" href="{% url 'record_form' key product.pk %}?next={{ request.path|urlencode }}">{{ k.label }}</a>{% endfor %}
+</div>
+
+<h2>記録（最新50件）</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>日時</th><th>種類</th><th class="num">増減</th><th class="hide-sm">場所</th><th class="hide-sm">記録した人</th><th class="hide-sm">Airレジ</th><th></th></tr></thead>
+  <tbody>
+  {% for m in movements %}
+  <tr>
+    <td class="muted">{{ m.created_at|date:"n/j H:i" }}</td>
+    <td>{{ m.get_kind_display }}{% if m.reason %}（{{ m.reason }}）{% endif %}{% if m.cancel_of_id %} <span class="tag">取り消し</span>{% endif %}{% if m.note and not m.cancel_of_id %}<br><span class="muted">{{ m.note }}</span>{% endif %}</td>
+    <td class="num {% if m.qty < 0 %}neg{% endif %}">{{ m.qty|signed }}</td>
+    <td class="hide-sm">{{ m.location.name|default:"" }}</td>
+    <td class="hide-sm muted">{{ m.user.username|default:"自動" }}</td>
+    <td class="hide-sm">{% if m.needs_send %}{% if m.sent %}<span class="tag green">送信済み</span>{% elif m.export_sync_id %}<span class="tag warn">アップロード待ち</span>{% else %}<span class="tag">未送信</span>{% endif %}{% endif %}</td>
+    <td>{% if m.cancellable %}<form method="post" action="{% url 'cancel_movement' m.pk %}" data-confirm="この記録を取り消しますか？">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn small secondary">取り消す</button></form>{% endif %}</td>
+  </tr>
+  {% empty %}
+  <tr><td colspan="7" class="muted">まだ記録はありません。</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

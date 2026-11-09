@@ -1,0 +1,26 @@
+{% extends "inventory/base.html" %}
+{% block title %}在庫｜在庫管理{% endblock %}
+{% block content %}
+<h1>在庫</h1>
+<div data-filter>
+  {% include "inventory/_filter.html" %}
+  <div class="table-wrap"><table>
+    <thead><tr>
+      <th>商品</th><th class="num">合計</th>
+      {% for loc in locations %}<th class="num hide-sm">{{ loc.name }}</th>{% endfor %}
+      <th class="hide-sm"></th>
+    </tr></thead>
+    <tbody>
+    {% for p in products %}
+    <tr data-item data-text="{{ p.name }} {{ p.kana }} {{ p.code }}" data-category="{{ p.category }}" class="{% if p.low %}low{% endif %}">
+      <td><a class="rowlink" href="{% url 'product_detail' p.pk %}">{{ p.name }}</a><br><span class="muted">{{ p.code }}{% if p.category %}・{{ p.category }}{% endif %}</span></td>
+      <td class="num {% if p.total < 0 %}neg{% endif %}"><strong>{{ p.total }}</strong> {{ p.unit }}</td>
+      {% for q in p.by_location %}<td class="num hide-sm {% if q < 0 %}neg{% endif %}">{% if q is None %}<span class="muted">—</span>{% else %}{{ q }}{% endif %}</td>{% endfor %}
+      <td class="hide-sm">{% if p.low %}<span class="tag warn">少ない</span>{% endif %}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  <p class="muted" data-empty hidden>見つかりませんでした。</p>
+</div>
+{% endblock %}

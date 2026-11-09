@@ -1,0 +1,78 @@
+{% extends "inventory/base.html" %}
+{% block title %}{{ k.label }}｜在庫管理{% endblock %}
+{% block content %}
+<p><a href="{% url 'record_select' kind %}">← 商品を選び直す</a></p>
+<div class="record-head"><span class="icon" style="background:var(--{{ k.tone }})" aria-hidden="true">{{ k.icon }}</span>
+  <div><div class="muted">{{ k.label }}</div><h1 style="margin:0">{{ product.name }}</h1></div>
+</div>
+<p class="muted">今の在庫：{% for loc in locations %}{% if loc.qty %}{{ loc.name }} {{ loc.qty }}{{ product.unit }}　{% endif %}{% empty %}{% endfor %}合計 {{ product.total_qty }}{{ product.unit }}</p>
+
+<form method="post"
+  {% if kind == "move" %}data-confirm="{{ product.name }}を {qty}{{ product.unit }}、{location} から {to_location} へ移動します。よろしいですか？"
+  {% elif kind == "adjust" %}data-confirm="{location}の{{ product.name }}を {qty}{{ product.unit }} に直します。よろしいですか？"
+  {% elif kind == "waste" %}data-confirm="{{ product.name }}を {qty}{{ product.unit }} 廃棄します（{reason}）。よろしいですか？"
+  {% else %}data-confirm="{{ product.name }}を {qty}{{ product.unit }} {{ k.verb }}。よろしいですか？（{location}）"{% endif %}>
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ next }}">
+
+  <div class="field">
+    <span class="label">{% if kind == "move" %}どこから{% else %}場所{% endif %}</span>
+    <div class="choices" id="locations">
+      {% for loc in locations %}
+      <input type="radio" name="location" id="loc{{ loc.pk }}" value="{{ loc.pk }}" data-label="{{ loc.name }}" data-qty="{{ loc.qty }}" {% if loc.pk == default_loc.pk %}checked{% endif %}>
+      <label for="loc{{ loc.pk }}">{{ loc.name }}<small>{{ loc.qty }}{{ product.unit }}</small></label>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% if kind == "move" %}
+  <div class="field">
+    <span class="label">どこへ</span>
+    <div class="choices">
+      {% for loc in locations %}
+      <input type="radio" name="to_location" id="to{{ loc.pk }}" value="{{ loc.pk }}" data-label="{{ loc.name }}" {% if other_loc and loc.pk == other_loc.pk %}checked{% endif %}>
+      <label for="to{{ loc.pk }}">{{ loc.name }}<small>{{ loc.qty }}{{ product.unit }}</small></label>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if kind == "waste" %}
+  <div class="field">
+    <span class="label">理由</span>
+    <div class="choices">
+      {% for r in reasons %}
+      <input type="radio" name="reason" id="r{{ forloop.counter }}" value="{{ r }}" data-label="{{ r }}" {% if forloop.first %}checked{% endif %}>
+      <label for="r{{ forloop.counter }}">{{ r }}</label>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="field">
+    <label for="qty">{% if kind == "adjust" %}正しい数（数え直した数）{% else %}数{% endif %}（{{ product.unit }}）</label>
+    <div class="stepper" data-stepper>
+      <button type="button" data-step="-1" aria-label="1減らす">−</button>
+      <input type="number" inputmode="numeric" id="qty" name="qty" min="{% if kind == 'adjust' %}0{% else %}1{% endif %}" step="1" required
+        value="{% if kind == 'adjust' %}{{ default_loc.qty|default:0 }}{% else %}1{% endif %}">
+      <button type="button" data-step="1" aria-label="1増やす">＋</button>
+    </div>
+    {% if kind != "adjust" %}
+    <div class="quick"><button type="button" onclick="addQty(5)">+5</button><button type="button" onclick="addQty(10)">+10</button></div>
+    {% endif %}
+  </div>
+
+  <div class="field">
+    <label for="note">メモ（任意）</label>
+    <input class="note-input" type="text" id="note" name="note" maxlength="200" placeholder="例：〇〇園芸から">
+  </div>
+
+  <div class="sticky-submit"><button class="btn" type="submit">{{ k.label }}を記録する</button></div>
+</form>
+<script>
+function addQty(n){const i=document.getElementById('qty');i.value=(Number(i.value)||0)+n;}
+{% if kind == "adjust" %}
+document.querySelectorAll('#locations input').forEach(r=>r.addEventListener('change',()=>{document.getElementById('qty').value=r.dataset.qty;}));
+{% endif %}
+</script>
+{% endblock %}

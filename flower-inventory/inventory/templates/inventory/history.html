@@ -1,0 +1,26 @@
+{% extends "inventory/base.html" %}
+{% load inv %}
+{% block title %}記録｜在庫管理{% endblock %}
+{% block content %}
+<h1>記録</h1>
+<form method="get" class="chips">
+  <a class="chip {% if not kind %}on{% endif %}" href="?" style="display:flex;align-items:center;text-decoration:none">すべて</a>
+  {% for value, label in kind_choices %}<a class="chip {% if kind == value %}on{% endif %}" href="?kind={{ value }}" style="display:flex;align-items:center;text-decoration:none">{{ label }}</a>{% endfor %}
+</form>
+<div class="table-wrap"><table>
+  <thead><tr><th>日時</th><th>商品</th><th>種類</th><th class="num">増減</th><th class="hide-sm">場所</th><th class="hide-sm">記録した人</th><th></th></tr></thead>
+  <tbody>
+  {% for m in movements %}
+  <tr>
+    <td class="muted">{{ m.created_at|date:"n/j H:i" }}</td>
+    <td><a class="rowlink" href="{% url 'product_detail' m.product_id %}">{{ m.product.name }}</a></td>
+    <td>{{ m.get_kind_display }}{% if m.reason %}（{{ m.reason }}）{% endif %}{% if m.cancel_of_id %} <span class="tag">取り消し</span>{% endif %}</td>
+    <td class="num {% if m.qty < 0 %}neg{% endif %}">{{ m.qty|signed }}</td>
+    <td class="hide-sm">{{ m.location.name|default:"" }}</td>
+    <td class="hide-sm muted">{{ m.user.username|default:"自動" }}</td>
+    <td>{% if m.cancellable %}<form method="post" action="{% url 'cancel_movement' m.pk %}" data-confirm="この記録を取り消しますか？">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn small secondary">取り消す</button></form>{% endif %}</td>
+  </tr>
+  {% empty %}<tr><td colspan="7" class="muted">記録はありません。</td></tr>{% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

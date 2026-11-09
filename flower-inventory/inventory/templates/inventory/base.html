@@ -1,0 +1,47 @@
+{% load static inv %}<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}在庫管理{% endblock %}</title>
+<link rel="stylesheet" href="{% static 'inventory/style.css' %}">
+<script src="{% static 'inventory/app.js' %}" defer></script>
+</head>
+<body>
+{% if user.is_authenticated %}
+{% with u=request.resolver_match.url_name %}
+<header class="topbar"><div class="topbar-inner">
+  <a class="brand" href="{% url 'home' %}">🌿 在庫管理</a>
+  <nav>
+    <a href="{% url 'home' %}" class="{% if u == 'home' %}active{% endif %}">ホーム</a>
+    <a href="{% url 'stock_list' %}" class="{% if u == 'stock_list' or u == 'product_detail' %}active{% endif %}">在庫</a>
+    <a href="{% url 'history' %}" class="{% if u == 'history' %}active{% endif %}">記録</a>
+    <a href="{% url 'stocktake_list' %}" class="{% if 'stocktake' in u %}active{% endif %}">棚卸し</a>
+    {% if user.is_staff %}
+    <a href="{% url 'airregi_sync' %}" class="{% if 'airregi' in u %}active{% endif %}">Airレジ同期{% if nav_unsent or nav_pending_upload %} <span class="badge">{% if nav_pending_upload %}!{% else %}{{ nav_unsent }}{% endif %}</span>{% endif %}</a>
+    <a href="{% url 'product_list' %}" class="{% if u == 'product_list' %}active{% endif %}">商品</a>
+    <a href="{% url 'admin:index' %}">設定</a>
+    {% endif %}
+  </nav>
+  <span class="spacer"></span>
+  <form method="post" action="{% url 'logout' %}">{% csrf_token %}<nav><button type="submit">ログアウト</button></nav></form>
+</div></header>
+{% endwith %}
+{% endif %}
+<main>
+{% if messages %}
+<ul class="messages">
+  {% for message in messages %}
+  <li class="{{ message.tags|level }}">
+    <span>{{ message }}</span>
+    {% with uid=message.extra_tags|undo_id %}{% if uid %}
+    <form method="post" action="{% url 'cancel_movement' uid %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn small secondary">取り消す</button></form>
+    {% endif %}{% endwith %}
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% block content %}{% endblock %}
+</main>
+</body>
+</html>

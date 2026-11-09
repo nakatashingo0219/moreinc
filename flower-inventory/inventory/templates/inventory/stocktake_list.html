@@ -1,0 +1,26 @@
+{% extends "inventory/base.html" %}
+{% block title %}棚卸し｜在庫管理{% endblock %}
+{% block content %}
+<h1>棚卸し</h1>
+<p>場所ごとに実際の数を数えて入力します。途中で保存して、あとから続きを入力できます。確定すると、数えた数が在庫になり、次のAirレジ同期でAirレジにも反映されます。</p>
+{% if user.is_staff %}
+<form method="post" action="{% url 'stocktake_new' %}" class="btn-row">{% csrf_token %}
+  <input class="note-input" style="max-width:360px" type="text" name="title" placeholder="名前（例：2026年 年末棚卸し）">
+  <button class="btn">棚卸しを始める</button>
+</form>
+{% endif %}
+<div class="table-wrap"><table>
+  <thead><tr><th>名前</th><th>状態</th><th class="hide-sm">開始</th><th class="hide-sm">確定</th><th></th></tr></thead>
+  <tbody>
+  {% for st in stocktakes %}
+  <tr>
+    <td><strong>{{ st.title }}</strong></td>
+    <td>{% if st.status == "draft" %}<span class="tag warn">入力中</span>{% else %}<span class="tag green">確定</span>{% endif %}</td>
+    <td class="hide-sm muted">{{ st.created_at|date:"Y/n/j" }}</td>
+    <td class="hide-sm muted">{{ st.completed_at|date:"Y/n/j"|default:"" }}</td>
+    <td>{% if st.status == "draft" %}<a class="btn small" href="{% url 'stocktake_edit' st.pk %}">続きを入力</a>{% else %}<a class="btn small secondary" href="{% url 'stocktake_review' st.pk %}">結果を見る</a>{% endif %}</td>
+  </tr>
+  {% empty %}<tr><td colspan="5" class="muted">まだ棚卸しはありません。{% if not user.is_staff %}店長が開始すると、ここに表示されます。{% endif %}</td></tr>{% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

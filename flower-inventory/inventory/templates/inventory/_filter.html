@@ -1,0 +1,7 @@
+<input class="search" type="search" placeholder="商品名で探す（ひらがなでもOK）" data-search autocomplete="off">
+{% if categories %}
+<div class="chips" role="group" aria-label="カテゴリ">
+  <button type="button" class="chip on" data-chip="">すべて</button>
+  {% for c in categories %}<button type="button" class="chip" data-chip="{{ c }}">{{ c }}</button>{% endfor %}
+</div>
+{% endif %}

@@ -1,0 +1,17 @@
+{% extends "inventory/base.html" %}
+{% block title %}{{ k.label }}｜在庫管理{% endblock %}
+{% block content %}
+<div class="record-head tone-{{ k.tone }}"><span class="icon" style="background:var(--{{ k.tone }})" aria-hidden="true">{{ k.icon }}</span><h1 style="margin:0">{{ k.label }}：商品を選んでください</h1></div>
+<div data-filter>
+  {% include "inventory/_filter.html" %}
+  <div class="grid">
+    {% for p in products %}
+    <a class="tile {% if p.total < 0 %}neg{% endif %}" href="{% url 'record_form' kind p.pk %}" data-item data-text="{{ p.name }} {{ p.kana }} {{ p.code }}" data-category="{{ p.category }}">
+      <span class="name">{{ p.name }}</span>
+      <span class="meta"><span>{{ p.category }}</span><span><span class="qty">{{ p.total }}</span> {{ p.unit }}</span></span>
+    </a>
+    {% endfor %}
+  </div>
+  <p class="muted" data-empty hidden>見つかりませんでした。</p>
+</div>
+{% endblock %}
